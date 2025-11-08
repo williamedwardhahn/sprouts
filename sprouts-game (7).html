@@ -1,0 +1,840 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>SPROUTS</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: #2b0f54;
+            min-height: 100vh;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            touch-action: none;
+            overflow: hidden;
+            color: #49e7ec;
+            position: fixed;
+            width: 100%;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .header {
+            background: #ab1f65;
+            padding: 10px;
+            text-align: center;
+            color: #fff7f8;
+            border-bottom: 3px solid #ff4f69;
+            box-shadow: 0 0 20px rgba(255, 79, 105, 0.5);
+            flex-shrink: 0;
+        }
+
+        .header h1 {
+            font-size: 20px;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: bold;
+            color: #ffda45;
+        }
+
+        .turn-info {
+            font-size: 12px;
+            margin-top: 5px;
+            color: #fff7f8;
+        }
+
+        .game-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 10px;
+            overflow: hidden;
+            min-height: 0;
+        }
+
+        .canvas-wrapper {
+            flex: 1;
+            background: #2b0f54;
+            border: 3px solid #49e7ec;
+            overflow: hidden;
+            position: relative;
+            margin-bottom: 10px;
+            box-shadow: 0 0 30px rgba(73, 231, 236, 0.3);
+            min-height: 0;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            cursor: crosshair;
+            background: #1a0a30;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        button {
+            flex: 1;
+            min-width: 90px;
+            padding: 14px 16px;
+            font-size: 12px;
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+            border: 2px solid #49e7ec;
+            background: #2b0f54;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: #49e7ec;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .btn-primary {
+            border-color: #3368dc;
+            color: #3368dc;
+        }
+
+        .btn-secondary {
+            border-color: #ff8142;
+            color: #ff8142;
+        }
+
+        .btn-success {
+            border-color: #ffda45;
+            color: #ffda45;
+        }
+
+        button:hover {
+            background: #49e7ec;
+            color: #2b0f54;
+            box-shadow: 0 0 15px rgba(73, 231, 236, 0.5);
+        }
+
+        .btn-secondary:hover {
+            background: #ff8142;
+            color: #2b0f54;
+            border-color: #ff8142;
+            box-shadow: 0 0 15px rgba(255, 129, 66, 0.5);
+        }
+
+        .btn-success:hover {
+            background: #ffda45;
+            color: #2b0f54;
+            border-color: #ffda45;
+            box-shadow: 0 0 15px rgba(255, 218, 69, 0.5);
+        }
+
+        .btn-primary:hover {
+            background: #3368dc;
+            color: #fff7f8;
+            border-color: #3368dc;
+            box-shadow: 0 0 15px rgba(51, 104, 220, 0.5);
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        button:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        button:disabled:hover {
+            background: #2b0f54;
+            color: #49e7ec;
+        }
+
+        .instructions {
+            background: #2b0f54;
+            padding: 20px;
+            margin-top: 10px;
+            border: 2px solid #49e7ec;
+            color: #fff7f8;
+        }
+
+        .instructions h3 {
+            color: #ffda45;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .instructions ul {
+            margin-left: 20px;
+            line-height: 1.8;
+        }
+
+        .instructions li {
+            margin-bottom: 5px;
+        }
+
+        .instructions strong {
+            color: #ff4f69;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(43, 15, 84, 0.95);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: #2b0f54;
+            padding: 30px;
+            text-align: center;
+            max-width: 90%;
+            border: 3px solid #ff4f69;
+            box-shadow: 0 0 40px rgba(255, 79, 105, 0.6);
+        }
+
+        .modal-content h2 {
+            color: #ffda45;
+            margin-bottom: 15px;
+            font-size: 28px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+
+        .modal-content p {
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: #49e7ec;
+        }
+
+        .dot-count {
+            background: #ab1f65;
+            padding: 5px 10px;
+            border: 1px solid #ff4f69;
+            display: inline-block;
+            margin-top: 5px;
+            font-size: 11px;
+        }
+
+        @media (max-width: 600px) {
+            .header h1 {
+                font-size: 18px;
+                letter-spacing: 1px;
+            }
+            
+            .turn-info {
+                font-size: 11px;
+            }
+            
+            button {
+                font-size: 11px;
+                padding: 12px 12px;
+                min-width: 80px;
+            }
+            
+            .instructions {
+                font-size: 13px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>[ SPROUTS ]</h1>
+        <div class="turn-info">
+            <span id="currentPlayer">>>> PLAYER_1 TURN</span>
+            <div class="dot-count" id="dotCount">ACTIVE_NODES: 0</div>
+        </div>
+    </div>
+
+    <div class="game-container">
+        <div class="canvas-wrapper">
+            <canvas id="gameCanvas"></canvas>
+        </div>
+
+        <div class="controls">
+            <button class="btn-secondary" onclick="undoMove()" id="undoBtn" disabled>[ UNDO ]</button>
+            <button class="btn-success" onclick="newGame()">[ NEW_GAME ]</button>
+            <button class="btn-primary" onclick="toggleInstructions()">[ HELP ]</button>
+        </div>
+
+        <div class="instructions" id="instructions" style="display: none;">
+            <h3>// SYSTEM MANUAL //</h3>
+            <ul>
+                <li><strong>INIT:</strong> Game spawns 2-5 nodes at random coordinates</li>
+                <li><strong>EXEC:</strong> Draw connection between two nodes (or loop to self)</li>
+                <li><strong>SPAWN:</strong> New node created on your connection line</li>
+                <li><strong>RULE_1:</strong> Connections cannot intersect existing paths</li>
+                <li><strong>RULE_2:</strong> Max 3 connections per node (degree limit)</li>
+                <li><strong>WIN:</strong> Last player with valid move = WINNER</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="modal" id="gameOverModal">
+        <div class="modal-content">
+            <h2>// GAME TERMINATED //</h2>
+            <p id="winnerText">PLAYER_1 = WINNER</p>
+            <button class="btn-success" onclick="newGame()">[ RESTART ]</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        let dots = [];
+        let lines = [];
+        let currentPlayer = 1;
+        let drawingLine = false;
+        let startDot = null;
+        let tempLine = [];
+        let gameHistory = [];
+        let lastDrawTime = 0;
+
+        // Colors for players
+        const colors = {
+            1: '#ff4f69',
+            2: '#3368dc'
+        };
+
+        function resizeCanvas() {
+            const wrapper = canvas.parentElement;
+            const rect = wrapper.getBoundingClientRect();
+            const dpr = window.devicePixelRatio || 1;
+            
+            // Set display size
+            canvas.style.width = rect.width + 'px';
+            canvas.style.height = rect.height + 'px';
+            
+            // Set actual canvas size for retina displays
+            canvas.width = rect.width * dpr;
+            canvas.height = rect.height * dpr;
+            
+            // Scale context for retina
+            ctx.scale(dpr, dpr);
+            
+            // Update logical dimensions
+            canvas.logicalWidth = rect.width;
+            canvas.logicalHeight = rect.height;
+            
+            draw();
+        }
+
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(resizeCanvas, 100);
+        });
+        
+        // Also handle orientation change
+        window.addEventListener('orientationchange', () => {
+            setTimeout(resizeCanvas, 200);
+        });
+        
+        setTimeout(resizeCanvas, 100);
+
+        function initGame() {
+            dots = [];
+            lines = [];
+            currentPlayer = 1;
+            drawingLine = false;
+            startDot = null;
+            tempLine = [];
+            gameHistory = [];
+            
+            // Wait for canvas to be sized
+            setTimeout(() => {
+                // Make sure canvas is properly sized
+                if (!canvas.logicalWidth || !canvas.logicalHeight) {
+                    resizeCanvas();
+                }
+                
+                const canvasWidth = canvas.logicalWidth || canvas.width;
+                const canvasHeight = canvas.logicalHeight || canvas.height;
+                
+                // Random number of starting dots (2-5)
+                const numDots = Math.floor(Math.random() * 4) + 2;
+                
+                // Create dots at random positions with minimum spacing
+                const minSpacing = Math.min(canvasWidth, canvasHeight) * 0.2; // 20% of smaller dimension
+                const margin = 50;
+                const maxAttempts = 200;
+                
+                // Get usable area
+                const usableWidth = canvasWidth - (2 * margin);
+                const usableHeight = canvasHeight - (2 * margin);
+                
+                console.log(`Canvas size: ${canvasWidth}x${canvasHeight}, placing ${numDots} dots, minSpacing: ${minSpacing}`);
+                
+                for (let i = 0; i < numDots; i++) {
+                    let placed = false;
+                    let attempts = 0;
+                    
+                    while (!placed && attempts < maxAttempts) {
+                        // Ensure full spread across screen
+                        const x = margin + (Math.random() * usableWidth);
+                        const y = margin + (Math.random() * usableHeight);
+                        
+                        // Check if this position is far enough from existing dots
+                        let validPosition = true;
+                        for (const dot of dots) {
+                            const dx = dot.x - x;
+                            const dy = dot.y - y;
+                            const distance = Math.sqrt(dx * dx + dy * dy);
+                            if (distance < minSpacing) {
+                                validPosition = false;
+                                break;
+                            }
+                        }
+                        
+                        if (validPosition) {
+                            dots.push({
+                                x: x,
+                                y: y,
+                                connections: 0,
+                                id: i
+                            });
+                            placed = true;
+                            console.log(`Dot ${i} placed at (${Math.round(x)}, ${Math.round(y)})`);
+                        }
+                        
+                        attempts++;
+                    }
+                    
+                    // If we couldn't place with full spacing, reduce spacing requirement
+                    if (!placed) {
+                        const reducedSpacing = minSpacing * 0.6;
+                        for (let j = 0; j < maxAttempts && !placed; j++) {
+                            const x = margin + (Math.random() * usableWidth);
+                            const y = margin + (Math.random() * usableHeight);
+                            
+                            let validPosition = true;
+                            for (const dot of dots) {
+                                const dx = dot.x - x;
+                                const dy = dot.y - y;
+                                const distance = Math.sqrt(dx * dx + dy * dy);
+                                if (distance < reducedSpacing) {
+                                    validPosition = false;
+                                    break;
+                                }
+                            }
+                            
+                            if (validPosition) {
+                                dots.push({
+                                    x: x,
+                                    y: y,
+                                    connections: 0,
+                                    id: i
+                                });
+                                placed = true;
+                                console.log(`Dot ${i} placed at (${Math.round(x)}, ${Math.round(y)}) with reduced spacing`);
+                            }
+                        }
+                    }
+                }
+                
+                updateUI();
+                draw();
+            }, 150);
+        }
+
+        function draw() {
+            if (canvas.width === 0 || canvas.height === 0) return;
+            
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw lines with smooth curves
+            lines.forEach(line => {
+                ctx.strokeStyle = line.color;
+                ctx.lineWidth = 4;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                
+                if (line.points.length > 2) {
+                    ctx.beginPath();
+                    ctx.moveTo(line.points[0].x, line.points[0].y);
+                    
+                    // Use quadratic curves for smoother lines
+                    for (let i = 1; i < line.points.length - 1; i++) {
+                        const xc = (line.points[i].x + line.points[i + 1].x) / 2;
+                        const yc = (line.points[i].y + line.points[i + 1].y) / 2;
+                        ctx.quadraticCurveTo(line.points[i].x, line.points[i].y, xc, yc);
+                    }
+                    
+                    // Connect to the last point
+                    const last = line.points[line.points.length - 1];
+                    const secondLast = line.points[line.points.length - 2];
+                    ctx.quadraticCurveTo(secondLast.x, secondLast.y, last.x, last.y);
+                    ctx.stroke();
+                } else if (line.points.length === 2) {
+                    ctx.beginPath();
+                    ctx.moveTo(line.points[0].x, line.points[0].y);
+                    ctx.lineTo(line.points[1].x, line.points[1].y);
+                    ctx.stroke();
+                }
+            });
+            
+            // Draw temp line being drawn
+            if (tempLine.length > 1) {
+                ctx.strokeStyle = colors[currentPlayer];
+                ctx.lineWidth = 4;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                ctx.setLineDash([5, 5]);
+                
+                ctx.beginPath();
+                ctx.moveTo(tempLine[0].x, tempLine[0].y);
+                for (let i = 1; i < tempLine.length; i++) {
+                    ctx.lineTo(tempLine[i].x, tempLine[i].y);
+                }
+                ctx.stroke();
+                ctx.setLineDash([]);
+            }
+            
+            // Draw dots
+            dots.forEach(dot => {
+                const isActive = dot.connections < 3;
+                
+                // Draw outer glow
+                if (isActive) {
+                    ctx.shadowColor = '#49e7ec';
+                    ctx.shadowBlur = 15;
+                    ctx.fillStyle = 'rgba(73, 231, 236, 0.3)';
+                    ctx.beginPath();
+                    ctx.arc(dot.x, dot.y, 25, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                
+                ctx.shadowColor = 'transparent';
+                ctx.shadowBlur = 0;
+                
+                // Draw main circle
+                ctx.strokeStyle = isActive ? '#49e7ec' : '#ab1f65';
+                ctx.lineWidth = 3;
+                ctx.fillStyle = isActive ? '#2b0f54' : '#1a0a30';
+                ctx.beginPath();
+                ctx.arc(dot.x, dot.y, 16, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+                
+                // Draw connection count
+                ctx.fillStyle = isActive ? '#ffda45' : '#666666';
+                ctx.font = 'bold 14px "Courier New"';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(dot.connections, dot.x, dot.y);
+            });
+        }
+
+        function getPointerPos(e) {
+            const rect = canvas.getBoundingClientRect();
+            const touch = e.touches ? e.touches[0] : e;
+            const x = touch.clientX - rect.left;
+            const y = touch.clientY - rect.top;
+            return { x, y };
+        }
+
+        function findDotAt(x, y) {
+            return dots.find(dot => {
+                const dx = dot.x - x;
+                const dy = dot.y - y;
+                return Math.sqrt(dx * dx + dy * dy) < 20;
+            });
+        }
+
+        function handleStart(e) {
+            e.preventDefault();
+            const pos = getPointerPos(e);
+            const dot = findDotAt(pos.x, pos.y);
+            
+            if (dot && dot.connections < 3) {
+                saveState();
+                drawingLine = true;
+                startDot = dot;
+                tempLine = [{ x: dot.x, y: dot.y }];
+            }
+        }
+
+        function handleMove(e) {
+            if (!drawingLine) return;
+            e.preventDefault();
+            
+            const now = Date.now();
+            if (now - lastDrawTime < 16) return; // Throttle to ~60fps
+            lastDrawTime = now;
+            
+            const pos = getPointerPos(e);
+            
+            // Only add point if it's far enough from the last point
+            const lastPoint = tempLine[tempLine.length - 1];
+            const dx = pos.x - lastPoint.x;
+            const dy = pos.y - lastPoint.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            
+            if (distance > 5) {
+                tempLine.push(pos);
+                draw();
+            }
+        }
+
+        function handleEnd(e) {
+            if (!drawingLine) return;
+            e.preventDefault();
+            
+            const pos = getPointerPos(e);
+            const endDot = findDotAt(pos.x, pos.y);
+            
+            // Must have drawn a line (at least 10 pixels)
+            if (tempLine.length < 5) {
+                alert('ERROR: Line length insufficient');
+                drawingLine = false;
+                startDot = null;
+                tempLine = [];
+                draw();
+                return;
+            }
+            
+            if (endDot && (endDot.connections < 3)) {
+                // Check if connecting to same dot (loop) - allow if line is long enough
+                if (endDot === startDot) {
+                    const totalDistance = calculateLineLength(tempLine);
+                    if (totalDistance < 50) {
+                        alert('ERROR: Loop radius too small');
+                        drawingLine = false;
+                        startDot = null;
+                        tempLine = [];
+                        draw();
+                        return;
+                    }
+                }
+                
+                if (isValidMove(startDot, endDot, tempLine)) {
+                    completeLine(startDot, endDot, tempLine);
+                } else {
+                    alert('ERROR: Path collision detected');
+                }
+            } else {
+                alert('ERROR: Invalid target node');
+            }
+            
+            drawingLine = false;
+            startDot = null;
+            tempLine = [];
+            draw();
+        }
+
+        function calculateLineLength(points) {
+            let total = 0;
+            for (let i = 1; i < points.length; i++) {
+                const dx = points[i].x - points[i-1].x;
+                const dy = points[i].y - points[i-1].y;
+                total += Math.sqrt(dx * dx + dy * dy);
+            }
+            return total;
+        }
+
+        function isValidMove(start, end, points) {
+            if (points.length < 5) return false;
+            
+            // Simplify the line by taking fewer points for collision check
+            const simplifiedPoints = [];
+            const step = Math.max(1, Math.floor(points.length / 15));
+            for (let i = 0; i < points.length; i += step) {
+                simplifiedPoints.push(points[i]);
+            }
+            // Always include the last point
+            if (simplifiedPoints[simplifiedPoints.length - 1] !== points[points.length - 1]) {
+                simplifiedPoints.push(points[points.length - 1]);
+            }
+            
+            // Check if line crosses any existing lines
+            for (let i = 0; i < simplifiedPoints.length - 1; i++) {
+                const p1 = simplifiedPoints[i];
+                const p2 = simplifiedPoints[i + 1];
+                
+                // Skip checking very short segments near start/end dots
+                const distToStart = Math.sqrt((p1.x - start.x) ** 2 + (p1.y - start.y) ** 2);
+                const distToEnd = Math.sqrt((p2.x - end.x) ** 2 + (p2.y - end.y) ** 2);
+                if (distToStart < 25 || distToEnd < 25) continue;
+                
+                // Check intersection with existing lines
+                for (const line of lines) {
+                    for (let j = 0; j < line.points.length - 1; j++) {
+                        const l1 = line.points[j];
+                        const l2 = line.points[j + 1];
+                        if (linesIntersect(p1, p2, l1, l2)) {
+                            return false;
+                        }
+                    }
+                }
+                
+                // Check if line goes through any dot (except start and end)
+                for (const dot of dots) {
+                    if (dot === start || dot === end) continue;
+                    // More lenient: only check middle segments of the line
+                    const lineProgress = i / (simplifiedPoints.length - 1);
+                    if (lineProgress > 0.15 && lineProgress < 0.85) {
+                        if (pointNearLine(dot, p1, p2, 20)) {
+                            return false;
+                        }
+                    }
+                }
+            }
+            
+            return true;
+        }
+
+        function linesIntersect(p1, p2, p3, p4) {
+            const det = (p2.x - p1.x) * (p4.y - p3.y) - (p4.x - p3.x) * (p2.y - p1.y);
+            if (Math.abs(det) < 0.001) return false;
+            
+            const lambda = ((p4.y - p3.y) * (p4.x - p1.x) + (p3.x - p4.x) * (p4.y - p1.y)) / det;
+            const gamma = ((p1.y - p2.y) * (p4.x - p1.x) + (p2.x - p1.x) * (p4.y - p1.y)) / det;
+            
+            // More lenient thresholds to avoid false positives at endpoints
+            return (lambda > 0.15 && lambda < 0.85) && (gamma > 0.15 && gamma < 0.85);
+        }
+
+        function pointNearLine(point, lineStart, lineEnd, threshold) {
+            const dx = lineEnd.x - lineStart.x;
+            const dy = lineEnd.y - lineStart.y;
+            const lengthSq = dx * dx + dy * dy;
+            
+            if (lengthSq < 0.001) return false;
+            
+            // Project point onto line segment
+            const t = Math.max(0, Math.min(1, ((point.x - lineStart.x) * dx + (point.y - lineStart.y) * dy) / lengthSq));
+            
+            const closestX = lineStart.x + t * dx;
+            const closestY = lineStart.y + t * dy;
+            
+            const distanceSq = (point.x - closestX) ** 2 + (point.y - closestY) ** 2;
+            
+            // Only return true if the point is actually on the line segment (not near endpoints)
+            if (t < 0.2 || t > 0.8) return false;
+            
+            return distanceSq < threshold * threshold;
+        }
+
+        function completeLine(start, end, points) {
+            // Add line
+            lines.push({
+                points: points.map(p => ({ ...p })),
+                color: colors[currentPlayer],
+                startDot: start.id,
+                endDot: end.id
+            });
+            
+            // Add new dot in the middle of the line
+            const midIndex = Math.floor(points.length / 2);
+            const newDot = {
+                x: points[midIndex].x,
+                y: points[midIndex].y,
+                connections: 2,
+                id: dots.length
+            };
+            dots.push(newDot);
+            
+            // Update connections
+            start.connections++;
+            end.connections++;
+            
+            // Check for game over
+            if (isGameOver()) {
+                setTimeout(() => {
+                    document.getElementById('winnerText').textContent = `PLAYER_${currentPlayer} = WINNER`;
+                    document.getElementById('gameOverModal').classList.add('active');
+                }, 300);
+            } else {
+                // Switch player
+                currentPlayer = currentPlayer === 1 ? 2 : 1;
+            }
+            
+            updateUI();
+        }
+
+        function isGameOver() {
+            // Game is over if no dots can make a move
+            return dots.every(dot => dot.connections >= 3);
+        }
+
+        function saveState() {
+            gameHistory.push({
+                dots: JSON.parse(JSON.stringify(dots)),
+                lines: JSON.parse(JSON.stringify(lines)),
+                currentPlayer: currentPlayer
+            });
+            document.getElementById('undoBtn').disabled = false;
+        }
+
+        function undoMove() {
+            if (gameHistory.length === 0) return;
+            
+            const state = gameHistory.pop();
+            dots = state.dots;
+            lines = state.lines;
+            currentPlayer = state.currentPlayer;
+            
+            if (gameHistory.length === 0) {
+                document.getElementById('undoBtn').disabled = true;
+            }
+            
+            updateUI();
+            draw();
+        }
+
+        function updateUI() {
+            document.getElementById('currentPlayer').textContent = `>>> PLAYER_${currentPlayer} TURN`;
+            const activeDots = dots.filter(d => d.connections < 3).length;
+            document.getElementById('dotCount').textContent = `ACTIVE_NODES: ${activeDots}`;
+        }
+
+        function newGame() {
+            document.getElementById('gameOverModal').classList.remove('active');
+            initGame();
+        }
+
+        function toggleInstructions() {
+            const instructions = document.getElementById('instructions');
+            instructions.style.display = instructions.style.display === 'none' ? 'block' : 'none';
+        }
+
+        // Event listeners for touch and mouse
+        canvas.addEventListener('mousedown', handleStart);
+        canvas.addEventListener('mousemove', handleMove);
+        canvas.addEventListener('mouseup', handleEnd);
+        canvas.addEventListener('touchstart', handleStart);
+        canvas.addEventListener('touchmove', handleMove);
+        canvas.addEventListener('touchend', handleEnd);
+
+        // Initialize game
+        initGame();
+    </script>
+</body>
+</html>
